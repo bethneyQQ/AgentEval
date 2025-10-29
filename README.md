@@ -6,18 +6,6 @@ A production-ready evaluation system for assessing AI agents and language models
 
 AgentEval provides a unified framework for evaluating AI models on various coding and reasoning benchmarks. It supports 10+ major language models (GPT-4, Claude, Qwen, DeepSeek, etc.) and integrates with established benchmarks like lm-evaluation-harness and loombenchmark.
 
-**Status**: Milestone 1 Complete (v1.0.0) - Production Ready
-
-## Key Features
-
-- **Multi-Model Support**: Unified interface for 10+ LLMs via LiteLLM
-- **Benchmark Integration**: Built-in support for lm-eval and loombench
-- **Concurrent Execution**: Configurable parallelism with 2x+ speedup
-- **Retry Mechanism**: Exponential backoff with automatic rate limit handling
-- **Multiple Export Formats**: HTML, CSV, and JSON reports
-- **CLI Tools**: Complete command-line interface
-- **High Test Coverage**: 98.3% (119/121 tests passing)
-- **Production Ready**: Comprehensive error handling and logging
 
 ## Quick Start
 
@@ -80,6 +68,35 @@ async def run_evaluation():
 # Run
 asyncio.run(run_evaluation())
 ```
+
+## Architecture
+
+### Core Components
+
+1. **Model Adapter Factory** (`core/model_adapter_factory.py`)
+   - Unified interface for multiple LLM providers
+   - Automatic cost calculation and token counting
+   - Configuration-driven model registration
+
+2. **Benchmark Adapters** (`core/benchmark_adapter_base.py`)
+   - LoomBench adapter for SWE-bench integration
+   - LM-Eval adapter for code generation tasks
+   - Extensible adapter registry
+
+3. **Batch Orchestrator** (`core/batch_orchestrator.py`)
+   - Concurrent task execution with semaphore control
+   - Progress tracking and result aggregation
+   - Automatic metrics calculation
+
+4. **Retry Handler** (`core/retry_handler.py`)
+   - Exponential backoff with jitter
+   - Configurable retry policies
+   - Rate limit handling
+
+5. **Export Handlers** (`core/export_handlers.py`)
+   - HTML reports with styling
+   - CSV data export
+   - JSON serialization
 
 ## Configuration
 
@@ -271,7 +288,7 @@ for model, result in results.items():
   - Bug fixing
   - Code translation
 
-- **loombench**: bench integration for repository-level tasks
+- **loombench**: SWE-bench integration for repository-level tasks
   - GitHub issue resolution
   - Multi-file code changes
   - Integration testing
@@ -285,5 +302,20 @@ Verified performance metrics:
 - **Export Speed**: < 1 second for 100 tasks (all formats)
 - **Memory Efficient**: Handles large batches without issues
 
+## Testing
 
+Run the test suite:
+
+```bash
+# Run all tests
+python -m pytest tests/ -v
+
+# Run specific test categories
+python -m pytest tests/test_model_adapter.py -v
+python -m pytest tests/test_batch_orchestrator.py -v
+python -m pytest tests/test_e2e_integration.py -v
+
+# Run with coverage
+python -m pytest tests/ --cov=core --cov-report=html
+```
 **Last Updated**: 2025-10-28

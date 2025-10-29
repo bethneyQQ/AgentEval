@@ -1,0 +1,101 @@
+# AgentEval Plugin Configuration
+# This file configures the plugin system for ADEWorker integration
+
+# Global settings
+global:
+  enabled: true
+  log_level: INFO
+  log_file: /var/log/agenteval/plugin.log
+
+# Trace collector configuration
+trace_collector:
+  enabled: true
+
+  # Upload endpoint (your AgentEval server)
+  endpoint: "http://localhost:8000"
+
+  # API key for authentication (use environment variable)
+  api_key: "${AGENTEVAL_API_KEY}"
+
+  # Batch upload settings
+  batch:
+    max_size: 100              # Max events per batch
+    max_wait_seconds: 1.0      # Max wait time before flushing
+    max_queue_size: 10000      # Max queue size
+
+  # Retry configuration
+  retry:
+    max_attempts: 3
+    backoff_factor: 2.0
+    max_backoff_seconds: 60
+
+  # Sampling configuration
+  sampling:
+    rate: 1.0  # 1.0 = 100% (collect all events)
+
+    # Smart sampling rules (optional)
+    rules:
+      # Always collect errors
+      - condition: "error == true"
+        rate: 1.0
+
+      # Always collect long-running tasks
+      - condition: "duration > 60"
+        rate: 1.0
+
+      # Sample 10% of test tasks
+      - condition: "task_type == 'test'"
+        rate: 0.1
+
+  # Local cache (fallback when upload fails)
+  local_cache:
+    enabled: true
+    cache_dir: /tmp/agenteval_cache
+    max_size_mb: 1000
+    ttl_hours: 24
+
+# Privacy and data redaction
+privacy:
+  enabled: true
+
+  # Sensitive field names (will be redacted)
+  sensitive_fields:
+    - password
+    - token
+    - api_key
+    - secret
+    - private_key
+    - access_token
+    - refresh_token
+    - session_token
+
+  # Regex patterns for redaction
+  redact_patterns:
+    # OpenAI API keys
+    - pattern: "sk-[a-zA-Z0-9]{32,}"
+      replacement: "sk-***REDACTED***"
+
+    # GitHub tokens
+    - pattern: "ghp_[a-zA-Z0-9]{36}"
+      replacement: "ghp_***REDACTED***"
+
+    # AWS credentials
+    - pattern: "AWS_ACCESS_KEY_ID=\\S+"
+      replacement: "AWS_ACCESS_KEY_ID=***REDACTED***"
+
+    - pattern: "AWS_SECRET_ACCESS_KEY=\\S+"
+      replacement: "AWS_SECRET_ACCESS_KEY=***REDACTED***"
+
+# Performance optimization
+performance:
+  async_mode: true            # Run hooks asynchronously
+  max_concurrent_uploads: 5   # Max parallel uploads
+  use_compression: true       # Compress data (gzip)
+
+# Plugin-specific configurations
+plugins:
+  - id: "evaluation_plugin"
+    enabled: true
+    priority: 100
+    sampling_rate: 1.0
+    async_mode: true
